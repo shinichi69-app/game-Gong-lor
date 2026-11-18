@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MG M2 Motorsport - Lucky Wheel</title>
+  <!-- นำเข้าฟอนต์ Prompt เพื่อความสวยงามและทันสมัย -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f1115;
+      --card-bg: #181b22;
+      --mg-red: #d91e2a;
+      --mg-red-glow: rgba(217, 30, 42, 0.5);
+      --text-white: #ffffff;
+      --text-muted: #9ca3af;
+      --border-color: #2e3440;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Prompt', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #1f2430 0%, var(--bg-dark) 100%);
+      color: var(--text-white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* ส่วนหัวแสดงโลโก้และชื่อสาขา */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .octagon-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 68px;
+      height: 68px;
+      background: #ffffff;
+      color: #000000;
+      font-weight: 800;
+      font-size: 26px;
+      letter-spacing: -1px;
+      /* ตัดมุมให้เป็นทรงแปดเหลี่ยมตามเอกลักษณ์โลโก้ MG */
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+      margin-bottom: 10px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      font-weight: 600;
+    }
+
+    /* คอนเทนเนอร์กงล้อ */
+    .wheel-wrapper {
+      position: relative;
+      width: 340px;
+      height: 340px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    /* กรอบวงแหวนรอบนอก */
+    .wheel-outer-ring {
+      position: absolute;
+      inset: -10px;
+      border-radius: 50%;
+      border: 6px solid #2b303c;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+    }
+
+    canvas#wheelCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    /* เข็มชี้ด้านบน */
+    .pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 44px;
+      background: var(--mg-red);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
+      z-index: 10;
+    }
+
+    /* ปุ่มตรงกลางกงล้อ (รูปทรงแปดเหลี่ยม MG) */
+    .center-spin-btn {
+      position: absolute;
+      width: 82px;
+      height: 82px;
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      font-weight: 800;
+      font-size: 1.1rem;
+      cursor: pointer;
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+      transition: transform 0.15s ease, background 0.2s ease;
+      z-index: 5;
+    }
+
+    .center-spin-btn:hover:not(:disabled) {
+      transform: scale(1.06);
+      background: #f3f4f6;
+    }
+
+    .center-spin-btn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .center-spin-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .center-spin-btn span {
+      font-size: 0.65rem;
+      color: var(--mg-red);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* ปุ่มหมุนขนาดใหญ่ด้านล่าง */
+    .action-btn {
+      background: linear-gradient(135deg, var(--mg-red) 0%, #a3121b 100%);
+      color: #ffffff;
+      border: none;
+      padding: 14px 44px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px var(--mg-red-glow);
+      transition: all 0.2s ease;
+      letter-spacing: 0.5px;
+    }
+
+    .action-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--mg-red-glow);
+    }
+
+    .action-btn:disabled {
+      background: #374151;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* หน้าต่างแจ้งผลรางวัล (Modal) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-top: 4px solid var(--mg-red);
+      border-radius: 16px;
+      padding: 32px 24px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-card h2 {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .prize-result {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 16px 0 24px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+    }
+
+    .close-modal-btn {
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      padding: 10px 32px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @media (min-width: 480px) {
+      .wheel-wrapper {
+        width: 400px;
+        height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ส่วนหัวโลโก้ MG M2 Motorsport -->
+  <header class="header">
+    <div class="octagon-badge">MG</div>
+    <h1>M2 MOTORSPORT</h1>
+    <p>UBONRATCHATHANI</p>
+  </header>
+
+  <!-- พื้นที่กงล้อ -->
+  <main class="wheel-wrapper">
+    <div class="wheel-outer-ring"></div>
+    <div class="pointer"></div>
+    <canvas id="wheelCanvas" width="500" height="500"></canvas>
+    <button id="centerSpinBtn" class="center-spin-btn">
+      MG
+      <span>SPIN</span>
+    </button>
+  </main>
+
+  <button id="mainSpinBtn" class="action-btn">หมุนกงล้อลุ้นรางวัล</button>
+
+  <!-- Modal แสดงผลรางวัล -->
+  <div id="resultModal" class="modal-overlay">
+    <div class="modal-card">
+      <h2>ยินดีด้วย! คุณได้รับรางวัล</h2>
+      <div id="prizeText" class="prize-result">-</div>
+      <button id="closeModalBtn" class="close-modal-btn">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    // 1. ตั้งค่ารายการของรางวัลและโทนสีสลับขาว-ดำ-แดง ตามธีม MG M2 Motorsport
+    const prizes = [
+      { label: "ส่วนลดเงินดาวน์ 5,000.-", bg: "#14171f", text: "#ffffff" },
+      { label: "ฟรี! ประกันภัยชั้น 1",     bg: "#ffffff", text: "#111827" },
+      { label: "บัตรน้ำมัน 1,000.-",       bg: "#d91e2a", text: "#ffffff" },
+      { label: "พรมปูพื้น MG แท้",        bg: "#ffffff", text: "#111827" },
+      { label: "ร่มกอล์ฟ MG Limited",      bg: "#14171f", text: "#ffffff" },
+      { label: "ฟรี! ค่าจดทะเบียน",       bg: "#ffffff", text: "#111827" },
+      { label: "แก้วเก็บความเย็น M2",      bg: "#d91e2a", text: "#ffffff" },
+      { label: "พวงกุญแจ M2 Motorsport",  bg: "#ffffff", text: "#111827" }
+    ];
+
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    const mainSpinBtn = document.getElementById("mainSpinBtn");
+    const centerSpinBtn = document.getElementById("centerSpinBtn");
+    const resultModal = document.getElementById("resultModal");
+    const prizeText = document.getElementById("prizeText");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    const numSlices = prizes.length;
+    const sliceAngle = (2 * Math.PI) / numSlices;
+    let currentRotation = 0; // เก็บมุมการหมุนปัจจุบัน (หน่วย Radian)
+    let isSpinning = false;
+    let lastTickIndex = -1;
+
+    // 2. สร้างเสียงประกอบ (Web Audio API) เพื่อไม่ต้องพึ่งไฟล์เสียงภายนอก
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTickSound() {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.04);
+    }
+
+    function playWinSound() {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      notes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.1 + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + i * 0.1);
+        osc.stop(audioCtx.currentTime + i * 0.1 + 0.35);
+      });
+    }
+
+    // 3. ฟังก์ชันวาดกงล้อลงบน Canvas
+    function drawWheel() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = canvas.width / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < numSlices; i++) {
+        // เริ่มวาดจากด้านบน (-90 องศา) บวกกับมุมที่หมุนไป
+        const startAngle = currentRotation + i * sliceAngle - Math.PI / 2;
+        const endAngle = startAngle + sliceAngle;
+
+        // วาดชิ้นพาย
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = prizes[i].bg;
+        ctx.fill();
+
+        // เส้นแบ่งช่อง
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#2e3440";
+        ctx.stroke();
+
+        // วาดข้อความรางวัล
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + sliceAngle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = prizes[i].text;
+        ctx.font = "700 17px 'Prompt', sans-serif";
+        ctx.fillText(prizes[i].label, radius - 26, 6);
+        ctx.restore();
+      }
+    }
+
+    // 4. ฟังก์ชันควบคุมการหมุน (Animation Loop)
+    function spinWheel() {
+      if (isSpinning) return;
+      isSpinning = true;
+      mainSpinBtn.disabled = true;
+      centerSpinBtn.disabled = true;
+
+      // สุ่มจำนวนรอบ (5 - 8 รอบ) + มุมสุ่มเพิ่มเติม
+      const extraSpins = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
+      const randomOffset = Math.random() * 2 * Math.PI;
+      const targetRotation = currentRotation + extraSpins + randomOffset;
+      const startRotation = currentRotation;
+      const duration = 4500; // ระยะเวลาหมุน 4.5 วินาที
+      const startTime = performance.now();
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Easing Function: ค่อยๆ ชะลอความเร็วตอนท้าย (Ease Out Quart)
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+        currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+
+        // ตรวจสอบจังหวะเข็มผ่านเส้นแบ่งช่องเพื่อเล่นเสียงติ๊ก
+        const normalizedAngle = ((currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        const currentTickIndex = Math.floor(normalizedAngle / sliceAngle);
+        if (currentTickIndex !== lastTickIndex) {
+          playTickSound();
+          lastTickIndex = currentTickIndex;
+        }
+
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          mainSpinBtn.disabled = false;
+          centerSpinBtn.disabled = false;
+          determineWinner();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // 5. คำนวณหาผู้ชนะที่ตรงกับเข็มด้านบน (-90 องศา)
+    function determineWinner() {
+      const twoPi = 2 * Math.PI;
+      const normalized = ((currentRotation % twoPi) + twoPi) % twoPi;
+      // เนื่องจากเข็มชี้ที่ตำแหน่ง 0 radian (ด้านบนสุดตามการชดเชย -PI/2)
+      const winningIndex = Math.floor(((twoPi - normalized) % twoPi) / sliceAngle);
+      const wonPrize = prizes[winningIndex];
+
+      playWinSound();
+      prizeText.textContent = wonPrize.label;
+      resultModal.classList.add("active");
+    }
+
+    // Event Listeners
+    mainSpinBtn.addEventListener("click", spinWheel);
+    centerSpinBtn.addEventListener("click", spinWheel);
+    closeModalBtn.addEventListener("click", () => {
+      resultModal.classList.remove("active");
+    });
+
+    // วาดกงล้อเริ่มต้นเมื่อโหลดหน้าเว็บ
+    drawWheel();
+  </script>
+</body>
+</html>
